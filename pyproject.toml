@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "freshnet"
+version = "0.1.0"
+description = "A DAG reconciler that triggers on data changes, not on a schedule."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [{ name = "Santhosh" }]
+dependencies = ["ruamel.yaml>=0.18"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/freshnet"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
