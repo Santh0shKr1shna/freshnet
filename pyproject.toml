@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "freshnet"
 version = "0.1.0"
-description = "A DAG reconciler that triggers on data changes, not on a schedule."
+description = "A YAML-to-DAG workflow parser and executor."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
