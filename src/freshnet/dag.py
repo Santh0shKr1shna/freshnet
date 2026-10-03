@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from .errors import CycleError
 
@@ -7,7 +7,7 @@ from .errors import CycleError
 @dataclass(frozen=True)
 class DagTask:
     name: str
-    run: Callable[[], None]
+    run: Callable[..., Any]
     depends_on: List[str]
 
 

@@ -1,4 +1,5 @@
 import importlib
+import inspect
 from pathlib import Path
 from typing import Callable, List, Optional, Tuple
 
@@ -119,10 +120,26 @@ def resolve_callable(run_str: str) -> Callable[[], None]:
         raise CallableResolutionError(run_str, exc) from exc
 
 
+def _check_signature(name: str, callable_, depends_on: List[str], source_path=None) -> None:
+    """Each dependency's return value is threaded in as a same-named keyword
+    argument, so the callable must be able to accept them - check this at
+    build time instead of letting it surface as a TypeError mid-execution."""
+    try:
+        inspect.signature(callable_).bind(**{dep: None for dep in depends_on})
+    except TypeError as exc:
+        raise SchemaError(
+            f"task '{name}' function does not accept its dependencies {depends_on} as keyword arguments: {exc}",
+            path=source_path,
+            task_name=name,
+        ) from exc
+
+
 def build_dag(spec: WorkflowSpec, source_path=None) -> Dag:
     nodes = {}
     for task in spec.tasks:
-        nodes[task.name] = DagTask(name=task.name, run=resolve_callable(task.run), depends_on=list(task.depends_on))
+        callable_ = resolve_callable(task.run)
+        _check_signature(task.name, callable_, task.depends_on, source_path)
+        nodes[task.name] = DagTask(name=task.name, run=callable_, depends_on=list(task.depends_on))
 
     dag = Dag(nodes)
     try:

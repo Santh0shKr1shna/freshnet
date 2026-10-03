@@ -14,7 +14,7 @@ def make_fixture_module(tmp_path, monkeypatch):
         "calls = []\n"
         "def task_a():\n"
         "    calls.append('a')\n"
-        "def task_b():\n"
+        "def task_b(a=None):\n"
         "    calls.append('b')\n"
     )
     monkeypatch.syspath_prepend(str(tmp_path))
@@ -90,6 +90,25 @@ def test_unknown_depends_on_raises_schema_error_with_line_info(tmp_path, monkeyp
     assert err.task_name == "b"
     assert err.line == 5
     assert err.col == 18
+
+
+def test_signature_mismatch_raises_schema_error(tmp_path, monkeypatch):
+    (tmp_path / "bad_tasks.py").write_text("def task_a():\n    pass\ndef task_b():\n    pass\n")
+    monkeypatch.syspath_prepend(str(tmp_path))
+    workflow = write_workflow(
+        tmp_path,
+        [
+            "tasks:",
+            "  a:",
+            '    run: "bad_tasks:task_a"',
+            "  b:",
+            "    depends_on: [a]",
+            '    run: "bad_tasks:task_b"',
+        ],
+    )
+
+    with pytest.raises(SchemaError, match="does not accept"):
+        load_workflow(workflow)
 
 
 def test_missing_run_raises_schema_error(tmp_path):
